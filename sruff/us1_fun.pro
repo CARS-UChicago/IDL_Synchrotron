@@ -1,58 +1,68 @@
-Function US1_fun, l, u, v, eps, status = st
+Function US1_fun, l, u, v, eps, verify = ver, status = st
 
 ;+
 ; NAME:
-;	US1_FUN
+;		US1_FUN
+; VERSION:
+;		4.2
 ; PURPOSE:
-;	Calculates the sum /Sigma{-/inf,/inf}{J_n(lu)*J_2n+l(lv) which is used
-;	in SR undulator calculations.
+;		Calculates the sum /Sigma{-/inf,/inf}{J_n(lu)*J_2n+l(lv) which is used
+;		in SR undulator calculations.
 ; CATEGORY:
-;	Mathematical, SR specific
+;		Mathematical, SR specific
 ; CALLING SEQUENCE:
-;	Result = US1_FUN (L, U, V [, EPS] [, STATUS = ST])
+;		Result = US1_FUN (L, U, V [, EPS] [, STATUS = ST])
 ; INPUTS:
-;    L
-;	Integer scalar.
-;    U
-;	Real scalar.
-;    V
-;	Real scalar.
+;	L
+;		Integer scalar.
+;	U
+;		Real scalar.
+;	V
+;		Real scalar.
 ; OPTIONAL INPUT PARAMETERS:
-;    EPS
-;	Specifies allowed relative calculation error.  Default value is ~2e-8.
+;	EPS
+;		Specifies allowed relative calculation error.  Default value is set
+;		according to the machine precision of U and V.
 ; KEYWORD PARAMETERS:
-;    STATUS
-;	Optional output, see below.
+;	/VERIFY
+;		Switch.  When set, passed to ROMBERG (see there) to provide for more
+;		precise integration (at the cost of speed).
+;	STATUS
+;		Optional output, see below.
 ; OUTPUTS:
-;	Returns calculation result, type FLOAT or the higher of [U, V].
+;		Returns calculation result, type FLOAT or the higher of [U, V].
 ; OPTIONAL OUTPUT PARAMETERS:
-;    STATUS
-;	The name of the variable to receive the calculation status.  Possible
-;	values are:
-;	    0 -	Calculation didn't converge.
-;	    1 - OK.
-;	    2 - Calculation converged but with precision worse than specified.
+;	STATUS
+;		The name of the variable to receive the calculation status.  Possible
+;		values are:
+;			0 -	Calculation didn't converge.
+;			1 - OK.
+;			2 - Calculation converged but with precision worse than specified.
 ; COMMON BLOCKS:
-;	None.
+;		None.
 ; SIDE EFFECTS:
-;	None.
+;		None.
 ; RESTRICTIONS:
-;	None.
+;		None.
 ; PROCEDURE:
-;	Calculates the sum expressed as an integral over a finite range.  The
-;	integration is performed through a call to ROMBERG (in MIDL) using the
-;	kernel JJ1_ARG (in SRUFF).  Also calls CAST, DEFAULT and TYPE from MIDL.
+;		Calculates the sum expressed as an integral over a finite range.  The
+;		integration is performed through a call to ROMBERG (in MIDL) using the
+;		kernel JJ1_ARG (in SRUFF).  Also calls CAST, DEFAULT, TOLER and TYPE
+;		from MIDL.
 ; MODIFICATION HISTORY:
-;	Created 30-MARCH-1994 by Mati Meron.
+;		Created 30-MARCH-1994 by Mati Meron.
+;		Modified 15-SEP-2001 by Mati Meron.  Verified WINDOWS compatibility.
+;		Modified 20-JAN-2006 by Mati Meron.  Added keyword /VERIFY.
 ;-
 
-    st = 1
-    deps = 0.5^(51./2.)
-    eps = Default(eps,deps,/dtype)
-    if abs(v) lt deps then begin
-	lh = fix(l)/2
-	if fix(l) mod 2 eq 0 then res = (-1)^lh*beselj(l*u,lh) else res = 0.
-    endif else res = (l eq 0) + $
-    1/!dpi*Romberg('JJ1_arg',!dpi*[-1,1],eps,par=[l,u,v],/rel,stat=st,try=3)
-    return, Cast(res,4,Type([u,v]))
+	st = 1
+	eps = Default(eps,(Toler(u) > Toler(v)),/dtype)
+	ll = fix(l)
+	if abs(v) lt eps then begin
+		lh = ll/2
+		if ll mod 2 eq 0 then res = (-1)^lh*beselj(ll*u,lh) $
+		else res = (-1)^lh*(ll*v/2.)*(beselj(ll*u,lh) + beselj(ll*u,lh+1))
+	endif else res = (l eq 0) + 1/!dpi* $
+	Romberg('JJ1_arg',!dpi*[-1,1],eps,par=[ll,u,v],/rel,stat=st,try=3,ver=ver)
+	return, Cast(res,4,Type([u,v]),/fix)
 end

@@ -80,8 +80,10 @@ Function Abs_coeff, en, elements= elar, dens= ro, dfac= dfac, weights= warr, $
 	dfac = Default(dfac,1.,/dtyp)
 	enun = Default(dun,enun,/strict)
 	rmax = alog(1e6)
+	in_units = enun
+	out_units = denun
 
-	logen = alog(Econv(en, from = enun, to = denun))
+	logen = alog(Econv(en, from = in_units, to = out_units))
 	eli = Elecomp(elar, number = nel)
 	if nel gt 1 then begin
 		if n_elements(ro) eq 1 then begin

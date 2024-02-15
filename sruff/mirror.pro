@@ -113,8 +113,10 @@ Function Mirror, en, theta, enuns = dun, elements = elar, num_elems = numels, $
 	Load_abs_coeffs
 	enun = Default(dun,enun,/strict)
 	conv = 12.398424
+	in_units = enun
+	out_units=denun
 
-	k = 2.*!pi/conv*Econv(en, from = enun, to = denun)
+	k = 2.*!pi/conv*Econv(en, from = in_units, to = out_units)
 	if keyword_set(deg) then sang = sin(!dtor*theta) else sang = sin(theta)
 	roffl = Isnum(roff)
 	trafl = keyword_set(tran)

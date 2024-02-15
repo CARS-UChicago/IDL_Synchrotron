@@ -84,7 +84,9 @@ Function Dielect, en, elements= elar, dens= ro, dfac= dfac, weights= warr, $
 
 	dfac = Default(dfac,1.,/dtyp)
 	enun = Default(dun,enun,/strict)
-	ien = 1./Econv(en, from = enun, to = denun)
+	in_units = enun
+	out_units = denun
+	ien = 1./Econv(en, from = in_units, to = out_units)
 	ipart = ipc*Abs_coeff(en,elem=elar,dens=ro,dfac=dfac,wei=warr,form=form)
 
 	eli = Elecomp(elar, number = nel)
